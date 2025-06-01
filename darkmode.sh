@@ -230,32 +230,58 @@ for ((i = 5; i >= 1; i--)); do
     echo "Lanjut Install Parameter $i. Tekan ctrl+c untuk membatalkan"
 done
 
-mkdir /root/db
-cp cache.bson /root/db
-cp cache.metadata.json /root/db
-cp config.bson /root/db
-cp config.metadata.json /root/db
-cp permissions.bson /root/db
-cp permissions.json /root/db
-cp presets.bson /root/db
-cp presets.metadata.json /root/db
-cp provisions.bson /root/db
-cp profisions.metadata.json /root/db
-cp users.bson /root/db
-cp users.metadata.json /root/db
-cp tasks.bson /root/db
-cp tasks.metadata.json /root/db
-cp virtualParameters.bson /root/db
-cp virtualParameters.metadata.json /root/db
-cd 
+# Folder sumber data backup
+SOURCE_DIR="$(pwd)/db-restore"
+BACKUP_DIR="/root/db"
+
+# Pastikan direktori sumber ada
+if [ ! -d "$SOURCE_DIR" ]; then
+    echo -e "${RED}Folder $SOURCE_DIR tidak ditemukan. Letakkan file .bson dan .json di folder itu.${NC}"
+    exit 1
+fi
+
+# Buat direktori tujuan
+mkdir -p "$BACKUP_DIR"
+
+# Salin file jika ada, tampilkan pesan jika tidak
+copy_file() {
+    local filename=$1
+    if [ -f "$SOURCE_DIR/$filename" ]; then
+        cp "$SOURCE_DIR/$filename" "$BACKUP_DIR/"
+    else
+        echo -e "${RED}File tidak ditemukan: $filename${NC}"
+    fi
+}
+
+# Daftar file yang akan disalin
+FILES=(
+    cache.bson cache.metadata.json
+    config.bson config.metadata.json
+    permissions.bson permissions.metadata.json
+    presets.bson presets.metadata.json
+    provisions.bson provisions.metadata.json
+    users.bson users.metadata.json
+    tasks.bson tasks.metadata.json
+    virtualParameters.bson virtualParameters.metadata.json
+)
+
+for file in "${FILES[@]}"; do
+    copy_file "$file"
+done
+
+# Backup database lama
+cd
 sudo mongodump --db=genieacs --out genieacs-backup
-mongorestore --db genieacs --drop db
+
+# Restore database baru
+mongorestore --db genieacs --drop "$BACKUP_DIR"
+
 echo -e "${GREEN}============================================================================${NC}"
 echo -e "${GREEN}=================== VIRTUAL PARAMETER BERHASIL DI INSTALL. =================${NC}"
-echo -e "${GREEN}===Jika ACS URL berbeda, silahkan edit di Admin >> Provosions >> inform ====${NC}"
+echo -e "${GREEN}===Jika ACS URL berbeda, silahkan edit di Admin >> Provisions >> inform ====${NC}"
 echo -e "${GREEN}========== GenieACS UI akses port 3000. : http://$local_ip:3000 ============${NC}"
 echo -e "${GREEN}=================== Informasi: Whatsapp 081947215703 =======================${NC}"
 echo -e "${GREEN}============================================================================${NC}"
 
-cd
-sudo rm -r genieacs
+# Hapus folder jika perlu
+sudo rm -rf genieacs
