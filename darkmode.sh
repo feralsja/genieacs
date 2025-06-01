@@ -30,7 +30,12 @@ for ((i = 5; i >= 1; i--)); do
     echo "Melanjutkan dalam $i. Tekan ctrl+c untuk membatalkan"
 done
 
-#Install NodeJS
+#============================== WARNA ==============================#
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+#===================== CEK & INSTALL NODE.JS =======================#
 check_node_version() {
     if command -v node > /dev/null 2>&1; then
         NODE_VERSION=$(node -v | cut -d 'v' -f 2)
@@ -48,43 +53,52 @@ check_node_version() {
 }
 
 if ! check_node_version; then
-    echo -e "${GREEN}================== Menginstall NodeJS ==================${NC}"
+    echo -e "${GREEN}================== Menginstall Node.js 20 ==================${NC}"
     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
     sudo apt-get install -y nodejs
-    echo -e "${GREEN}================== Sukses NodeJS ==================${NC}"
+    echo -e "${GREEN}================== Sukses Node.js ==================${NC}"
 else
     NODE_VERSION=$(node -v | cut -d 'v' -f 2)
     echo -e "${GREEN}============================================================================${NC}"
-    echo -e "${GREEN}============== NodeJS sudah terinstall versi ${NODE_VERSION}. ==============${NC}"
+    echo -e "${GREEN}============== Node.js sudah terinstall versi ${NODE_VERSION}. ==============${NC}"
     echo -e "${GREEN}========================= Lanjut install GenieACS ==========================${NC}"
 fi
 
-# MongoDB untuk ARM64 - Ubuntu Focal
+#==================== CEK & INSTALL MONGODB ========================#
+ARCH=$(uname -m)
+
 if ! systemctl is-active --quiet mongod; then
+    echo -e "${GREEN}================== Deteksi Arsitektur: $ARCH ==================${NC}"
     echo -e "${GREEN}================== Menginstall MongoDB ==================${NC}"
 
-    # Pastikan dependensi dasar tersedia
     sudo apt-get update
     sudo apt-get install -y curl gnupg ca-certificates lsb-release
 
-    # Tambahkan GPG key dengan cara modern
     curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | \
         gpg --dearmor -o /usr/share/keyrings/mongodb-org-archive-keyring.gpg
 
-    # Tambahkan repository MongoDB untuk ARM64
-    echo "deb [ arch=arm64 signed-by=/usr/share/keyrings/mongodb-org-archive-keyring.gpg ] \
+    if [[ "$ARCH" == "x86_64" ]]; then
+        echo "deb [ arch=amd64 signed-by=/usr/share/keyrings/mongodb-org-archive-keyring.gpg ] \
 https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | \
-    tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+            sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
 
-    # Update dan install MongoDB
+    elif [[ "$ARCH" == "aarch64" ]]; then
+        echo "deb [ arch=arm64 signed-by=/usr/share/keyrings/mongodb-org-archive-keyring.gpg ] \
+https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | \
+            sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+
+    else
+        echo -e "${RED}MongoDB tidak mendukung arsitektur ini secara resmi: $ARCH${NC}"
+        echo -e "${RED}Gunakan snap/docker/manual build sebagai alternatif.${NC}"
+        exit 1
+    fi
+
     sudo apt-get update
     sudo apt-get install -y mongodb-org
 
-    # Jalankan dan aktifkan MongoDB
     sudo systemctl start mongod
     sudo systemctl enable mongod
 
-    # Tes koneksi MongoDB
     mongo --eval 'db.runCommand({ connectionStatus: 1 })'
 
     echo -e "${GREEN}================== Sukses MongoDB ==================${NC}"
