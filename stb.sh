@@ -74,14 +74,18 @@ if ! sudo systemctl is-active --quiet mongod; then
     sudo systemctl enable mongod
     sudo systemctl start mongod
 
-#NodeJS Install
+# NodeJS Install
 check_node_version() {
     if command -v node > /dev/null 2>&1; then
         NODE_VERSION=$(node -v | cut -d 'v' -f 2)
-        NODE_MAJOR_VERSION=$(echo $NODE_VERSION | cut -d '.' -f 1)
-        NODE_MINOR_VERSION=$(echo $NODE_VERSION | cut -d '.' -f 2)
+        NODE_MAJOR_VERSION=$(echo "$NODE_VERSION" | cut -d '.' -f 1)
+        NODE_MINOR_VERSION=$(echo "$NODE_VERSION" | cut -d '.' -f 2)
 
-        if [ "$NODE_MAJOR_VERSION" -lt 12 ] || { [ "$NODE_MAJOR_VERSION" -eq 12 ] && [ "$NODE_MINOR_VERSION" -lt 13 ]; } || [ "$NODE_MAJOR_VERSION" -gt 22 ]; then
+        if [ "$NODE_MAJOR_VERSION" -lt 12 ]; then
+            return 1
+        elif [ "$NODE_MAJOR_VERSION" -eq 12 ] && [ "$NODE_MINOR_VERSION" -lt 13 ]; then
+            return 1
+        elif [ "$NODE_MAJOR_VERSION" -gt 22 ]; then
             return 1
         else
             return 0
@@ -92,21 +96,19 @@ check_node_version() {
 }
 
 if ! check_node_version; then
-    curl -s \
-${url_install}\
-nodejs.sh | \
-sudo bash
+    curl -s "${url_install}nodejs.sh" | sudo bash
 else
     NODE_VERSION=$(node -v | cut -d 'v' -f 2)
     echo -e "${GREEN}============================================================================${NC}"
     echo -e "${GREEN}============== NodeJS sudah terinstall versi ${NODE_VERSION}. ==============${NC}"
     echo -e "${GREEN}========================= Lanjut install GenieACS ==========================${NC}"
-
 fi
+
 if ! check_node_version; then
     sudo rm genieacs/install.sh
     exit 1
 fi
+
 
 #GenieACS
 if !  systemctl is-active --quiet genieacs-{cwmp,fs,ui,nbi}; then
