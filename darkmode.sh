@@ -65,6 +65,7 @@ else
 fi
 
 #==================== CEK & INSTALL MONGODB ========================#
+#==================== CEK & INSTALL MONGODB ========================#
 ARCH=$(uname -m)
 
 if ! systemctl is-active --quiet mongod; then
@@ -74,37 +75,59 @@ if ! systemctl is-active --quiet mongod; then
     sudo apt-get update
     sudo apt-get install -y curl gnupg ca-certificates lsb-release
 
-    curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | \
-        gpg --dearmor -o /usr/share/keyrings/mongodb-org-archive-keyring.gpg
+    if [[ "$ARCH" == "aarch64" ]] || [[ "$ARCH" == "armv7l" ]]; then
+        echo -e "${GREEN}Menginstall MongoDB untuk arsitektur ARM...${NC}"
 
-    if [[ "$ARCH" == "x86_64" ]]; then
-        echo "deb [ arch=amd64 signed-by=/usr/share/keyrings/mongodb-org-archive-keyring.gpg ] \
+        # Tambahkan GPG key modern
+        curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-org-archive-keyring.gpg
+
+        # Tambahkan repository sesuai arsitektur
+        if [[ "$ARCH" == "aarch64" ]]; then
+            echo "deb [ arch=arm64 signed-by=/usr/share/keyrings/mongodb-org-archive-keyring.gpg ] \
 https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | \
             sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
-
-    elif [[ "$ARCH" == "aarch64" ]]; then
-        echo "deb [ arch=arm64 signed-by=/usr/share/keyrings/mongodb-org-archive-keyring.gpg ] \
+        else
+            echo "deb [ arch=armhf signed-by=/usr/share/keyrings/mongodb-org-archive-keyring.gpg ] \
 https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | \
             sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+        fi
+
+        sudo apt-get update
+
+        # Install MongoDB dengan versi spesifik
+        sudo apt-get install -y mongodb-org=4.4.8 \
+            mongodb-org-server=4.4.8 \
+            mongodb-org-shell=4.4.8 \
+            mongodb-org-mongos=4.4.8 \
+            mongodb-org-tools=4.4.8
+
+        # Lock versi
+        echo "mongodb-org hold" | sudo dpkg --set-selections
+        echo "mongodb-org-server hold" | sudo dpkg --set-selections
+        echo "mongodb-org-shell hold" | sudo dpkg --set-selections
+        echo "mongodb-org-mongos hold" | sudo dpkg --set-selections
+        echo "mongodb-org-tools hold" | sudo dpkg --set-selections
 
     else
-        echo -e "${RED}MongoDB tidak mendukung arsitektur ini secara resmi: $ARCH${NC}"
-        echo -e "${RED}Gunakan snap/docker/manual build sebagai alternatif.${NC}"
+        # Untuk x86_64 atau lainnya, pakai script URL eksternal
+        echo -e "${GREEN}Menginstall MongoDB untuk x86_64...${NC}"
+        curl -s ${url_install}mongod.sh | sudo bash
+    fi
+
+    # Aktifkan dan jalankan MongoDB
+    sudo systemctl enable mongod
+    sudo systemctl start mongod
+
+    # Verifikasi
+    if ! systemctl is-active --quiet mongod; then
+        echo -e "${RED}MongoDB gagal dijalankan. Kemungkinan arsitektur tidak kompatibel.${NC}"
         exit 1
     fi
 
-    sudo apt-get update
-    sudo apt-get install -y mongodb-org
-
-    sudo systemctl start mongod
-    sudo systemctl enable mongod
-
-    mongo --eval 'db.runCommand({ connectionStatus: 1 })'
-
-    echo -e "${GREEN}================== Sukses MongoDB ==================${NC}"
+    echo -e "${GREEN}================== Sukses instalasi MongoDB ==================${NC}"
 else
     echo -e "${GREEN}============================================================================${NC}"
-    echo -e "${GREEN}=================== MongoDB sudah terinstall sebelumnya. ===================${NC}"
+    echo -e "${GREEN}=================== MongoDB sudah terinstal sebelumnya. ===================${NC}"
 fi
 
 #GenieACS
