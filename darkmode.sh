@@ -59,22 +59,38 @@ else
     echo -e "${GREEN}========================= Lanjut install GenieACS ==========================${NC}"
 fi
 
-#MongoDB
-if !  systemctl is-active --quiet mongod; then
+# MongoDB untuk ARM64 - Ubuntu Focal
+if ! systemctl is-active --quiet mongod; then
     echo -e "${GREEN}================== Menginstall MongoDB ==================${NC}"
-    curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | apt-key add -
-    apt-key list
-    echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-4.4.list
-    apt update
-    apt install mongodb-org -y
-    systemctl start mongod.service
-    systemctl start mongod
-    systemctl enable mongod
+
+    # Pastikan dependensi dasar tersedia
+    sudo apt-get update
+    sudo apt-get install -y curl gnupg ca-certificates lsb-release
+
+    # Tambahkan GPG key dengan cara modern
+    curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | \
+        gpg --dearmor -o /usr/share/keyrings/mongodb-org-archive-keyring.gpg
+
+    # Tambahkan repository MongoDB untuk ARM64
+    echo "deb [ arch=arm64 signed-by=/usr/share/keyrings/mongodb-org-archive-keyring.gpg ] \
+https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | \
+    tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+
+    # Update dan install MongoDB
+    sudo apt-get update
+    sudo apt-get install -y mongodb-org
+
+    # Jalankan dan aktifkan MongoDB
+    sudo systemctl start mongod
+    sudo systemctl enable mongod
+
+    # Tes koneksi MongoDB
     mongo --eval 'db.runCommand({ connectionStatus: 1 })'
+
     echo -e "${GREEN}================== Sukses MongoDB ==================${NC}"
 else
     echo -e "${GREEN}============================================================================${NC}"
-    echo -e "${GREEN}=================== mongodb sudah terinstall sebelumnya. ===================${NC}"
+    echo -e "${GREEN}=================== MongoDB sudah terinstall sebelumnya. ===================${NC}"
 fi
 
 #GenieACS
