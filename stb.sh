@@ -73,17 +73,6 @@ if ! sudo systemctl is-active --quiet mongod; then
     # Aktifkan dan jalankan MongoDB
     sudo systemctl enable mongod
     sudo systemctl start mongod
-else
-    echo -e "${GREEN}============================================================================${NC}"
-    echo -e "${GREEN}=================== mongodb sudah terinstall sebelumnya. ===================${NC}"
-fi
-
-// ... existing code ...
-sleep 3
-if ! sudo systemctl is-active --quiet mongod; then
-    sudo rm genieacs/install.sh
-    exit 1
-fi
 
 #NodeJS Install
 check_node_version() {
