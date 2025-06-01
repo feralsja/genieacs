@@ -219,7 +219,7 @@ cp virtualParameters.bson /root/db
 cp virtualParameters.metadata.json /root/db
 cd 
 sudo mongodump --db=genieacs --out genieacs-backup
-mongorestore --db genieacs --drop /root/db
+mongorestore --db genieacs --drop db
 echo -e "${GREEN}============================================================================${NC}"
 echo -e "${GREEN}=================== VIRTUAL PARAMETER BERHASIL DI INSTALL. =================${NC}"
 echo -e "${GREEN}===Jika ACS URL berbeda, silahkan edit di Admin >> Provosions >> inform ====${NC}"
