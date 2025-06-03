@@ -135,7 +135,7 @@ GENIEACS_FS_ACCESS_LOG_FILE=/var/log/genieacs/genieacs-fs-access.log
 GENIEACS_UI_ACCESS_LOG_FILE=/var/log/genieacs/genieacs-ui-access.log
 GENIEACS_DEBUG_FILE=/var/log/genieacs/genieacs-debug.yaml
 GENIEACS_EXT_DIR=/opt/genieacs/ext
-GENIEACS_UI_JWT_SECRET=kerensekalinaku
+GENIEACS_UI_JWT_SECRET=kerensekaliaku
 EOF
     chown genieacs:genieacs /opt/genieacs/genieacs.env
     chown genieacs. /opt/genieacs -R
@@ -226,7 +226,6 @@ fi
 #Sukses
 echo -e "${GREEN}============================================================================${NC}"
 echo -e "${GREEN}========== GenieACS UI akses port 3000. : http://$local_ip:3000 ============${NC}"
-echo -e "${GREEN}=================== Informasi: Whatsapp 081947215703 =======================${NC}"
 echo -e "${GREEN}============================================================================${NC}"
 cp -r app-LU66VFYW.css /usr/lib/node_modules/genieacs/public/
 cp -r logo-3976e73d.svg /usr/lib/node_modules/genieacs/public/
