@@ -228,7 +228,7 @@ echo -e "${GREEN}===============================================================
 echo -e "${GREEN}========== GenieACS UI akses port 3000. : http://$local_ip:3000 ============${NC}"
 echo -e "${GREEN}============================================================================${NC}"
 cp -r app-LU66VFYW.css /usr/lib/node_modules/genieacs/public/
-cp -r logo-3976e73d.svg /usr/lib/node_modules/genieacs/public/
+cp -r logo.svg /usr/lib/node_modules/genieacs/public/
 echo -e "${GREEN}Sekarang install parameter. Apakah anda ingin melanjutkan? (y/n)${NC}"
 read confirmation
 
